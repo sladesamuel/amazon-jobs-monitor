@@ -1,0 +1,13 @@
+{
+  "name": "fetch-page-content",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "postbuild": "cp package.json dist/ && (cd dist; yarn install --prod)"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

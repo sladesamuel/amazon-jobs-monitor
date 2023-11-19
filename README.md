@@ -10,9 +10,14 @@ The following tools need to be installed to be able to build and deploy this pro
 
 ## Getting started
 
-To get started, once the [prerequisites](#prerequisites) are installed, run the following command to build all the code and deploy it to your AWS Account.
+To get started, once the [prerequisites](#prerequisites) are installed, run the following commands to build all the code and deploy it to your AWS Account.
 
 ```shell
+# Optional: to make sure you're using the correct Node version
+$ nvm install
+$ nvm use
+
+# Runs all build and deployment scripts
 $ make setup
 ```
 
