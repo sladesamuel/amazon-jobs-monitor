@@ -17,6 +17,10 @@ To get started, once the [prerequisites](#prerequisites) are installed, run the 
 $ nvm install
 $ nvm use
 
+# If this is the first time running the project, you will need
+# to run this command before deploying
+$ make init
+
 # Runs all build and deployment scripts
 $ make setup
 ```
