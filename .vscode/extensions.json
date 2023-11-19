@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "EditorConfig.EditorConfig",
-    "xyc.vscode-mdx-preview"
+    "xyc.vscode-mdx-preview",
+    "amazonwebservices.aws-toolkit-vscode"
   ]
 }

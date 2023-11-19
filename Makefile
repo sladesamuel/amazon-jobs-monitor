@@ -6,6 +6,7 @@ SHELL := /bin/bash
 .PHONY: build
 build:
 	(cd functions/fetch-page-content; yarn install && yarn build)
+	(cd infra; yarn install && yarn build)
 
 .PHONY: deploy
 deploy:
@@ -13,7 +14,7 @@ deploy:
 
 .PHONY: clean
 clean:
-	rm -rf functions/**/node_modules \
+	rm -rf **/node_modules \
 		functions/**/dist \
 		functions/**/*.zip
 
