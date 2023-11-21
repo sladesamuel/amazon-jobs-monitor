@@ -30,13 +30,13 @@ queryParams.append("base_query[]", searchTerm)
 
 const fullUrl = `${searchUrl}?${queryParams.toString()}`
 
-type SearchResponse = {
+export type SearchResponse = {
   error: unknown
   hits: number // total number of results in the query
   jobs: Job[]
 }
 
-type Job = {
+export type Job = {
   id: string
   title: string
   job_path: string // URL segment relative to the baseUrl
@@ -44,11 +44,11 @@ type Job = {
   posted_date: string
 }
 
-type Result = {
+export type Result = {
   pages: Page[]
 }
 
-type Page = {
+export type Page = {
   page: number
   itemsPerPage: number
   searchUrl: string
@@ -59,12 +59,13 @@ export default async function (): Promise<Result> {
   console.log(response.data)
 
   if (response.data.error) {
-    console.error(response.data.error)
+    const error = response.data.error as string
+    console.error(error)
 
-    throw Error("Error in response from search")
+    throw Error(`Search failed: ${error}`)
   }
 
-  const pageCount = response.data.hits / itemsPerPage
+  const pageCount = Math.ceil(response.data.hits / itemsPerPage)
   const pages: Page[] = [...new Array(pageCount)]
     .map((_, index: number) => ({
       itemsPerPage,
