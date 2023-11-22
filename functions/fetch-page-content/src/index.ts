@@ -7,16 +7,10 @@ import Page from "./Page"
 
 const { baseUrl, itemsPerPage } = config
 
-const defaultModel: FetchPageContentModel = {
-  searchTerm: "Solutions Architect",
-  pageNumber: 1,
-  pages: []
-}
+export default async function (model: FetchPageContentModel): Promise<FetchPageContentModel> {
+  console.log(model)
 
-export default async function (event?: any): Promise<FetchPageContentModel> {
-  console.log(event)
-
-  const searchUrl = createSearchUrlFromModel(baseUrl, defaultModel)
+  const searchUrl = createSearchUrlFromModel(baseUrl, model)
   console.log("Searching with URL", searchUrl)
 
   const response = await axios.get<SearchResponse>(searchUrl)
@@ -38,8 +32,7 @@ export default async function (event?: any): Promise<FetchPageContentModel> {
     }))
 
   return {
-    searchTerm: defaultModel.searchTerm,
-    pageNumber: defaultModel.pageNumber,
+    ...model,
     pages
   }
 }

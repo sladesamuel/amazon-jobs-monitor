@@ -5,8 +5,15 @@ process.env.AMAZON_JOBS_BASE_URL = "https://amazon.jobs"
 
 import handler from "./index"
 import SearchResponse from "./SearchResponse"
+import FetchPageContentModel from "./FetchPageContentModel"
 
 const axiosMock = axios as jest.Mocked<typeof axios>
+
+const model: FetchPageContentModel = {
+  searchTerm: "Handler Tests",
+  pageNumber: 1,
+  pages: []
+}
 
 describe("handler", () => {
   beforeEach(() => {
@@ -29,7 +36,7 @@ describe("handler", () => {
       }
     )
 
-    const result = await handler()
+    const result = await handler(model)
 
     expect(result.pages).toHaveLength(1)
 
@@ -55,7 +62,7 @@ describe("handler", () => {
       }
     )
 
-    const result = await handler()
+    const result = await handler(model)
 
     expect(result.pages).toHaveLength(3)
 
@@ -83,7 +90,7 @@ describe("handler", () => {
     axiosMock.get.mockImplementationOnce(
       () => Promise.resolve(({ data: mockResponse })))
 
-    await expect(handler())
+    await expect(handler(model))
       .rejects
       .toThrow("Search failed: Some error")
   })
