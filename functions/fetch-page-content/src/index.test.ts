@@ -1,7 +1,10 @@
 import axios from "axios"
 jest.mock("axios")
 
-import handler, { SearchResponse } from "./index"
+process.env.AMAZON_JOBS_BASE_URL = "https://amazon.jobs"
+
+import handler from "./index"
+import SearchResponse from "./SearchResponse"
 
 const axiosMock = axios as jest.Mocked<typeof axios>
 
