@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "postbuild": "cp package.json dist/ && (cd dist; yarn install --prod)",
+    "postbuild": "cp package.json dist/ && (cd dist; yarn install --prod) && yarn package",
+    "package": "(cd dist; zip -r ../lambda.zip *)",
     "test": "jest"
   },
   "devDependencies": {
