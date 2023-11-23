@@ -1,8 +1,13 @@
 import path = require("path")
 import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import { aws_lambda as lambda, aws_stepfunctions as sfn } from "aws-cdk-lib"
+import {
+  aws_iam as iam,
+  aws_lambda as lambda,
+  aws_stepfunctions as sfn
+} from "aws-cdk-lib"
 import transformFileTemplate from "./transformFileTemplate"
+import { ServicePrincipal } from "aws-cdk-lib/aws-iam"
 
 const jobSearchTerm = "Solutions Architect"
 
@@ -27,6 +32,29 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
     })
 
     // Step Function: monitor-wprkflow
+    const stepFunctionIamRole = new iam.Role(this, "MonitorWorkflowRole", {
+      roleName: `${prefix}-workflow`,
+      assumedBy: new ServicePrincipal("states.amazonaws.com")
+    })
+
+    new iam.Policy(this, "MonitorWorkflowInvokeLambdasPolicy", {
+      policyName: `${prefix}-workflow-invoke-lambdas`,
+      roles: [stepFunctionIamRole],
+      document: iam.PolicyDocument.fromJson({
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AllowInvokeLambdas",
+            "Effect": "Allow",
+            "Action": "lambda:InvokeFunction",
+            "Resource": [
+              fetchPageContentLambda.functionArn
+            ]
+          }
+        ]
+      })
+    })
+
     const stepFunctionDefinitionFilePath = path.join(__dirname, "./workflow.asl.json")
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
       "JobSearchTerm": jobSearchTerm,
@@ -35,6 +63,7 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
 
     new sfn.StateMachine(this, "MonitorWorkflow", {
       stateMachineName: `${prefix}-workflow`,
+      role: stepFunctionIamRole,
       definitionBody: sfn.DefinitionBody.fromString(stepFunctionDefinition)
     })
   }
