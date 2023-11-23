@@ -1,0 +1,10 @@
+{
+  "Comment": "Orchestrates the process of monitoring the Amazon Jobs website for updates",
+  "StartAt": "Pass",
+  "States": {
+    "Pass": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}

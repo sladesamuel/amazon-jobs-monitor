@@ -1,7 +1,7 @@
 import path = require("path")
 import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import { aws_lambda as lambda } from "aws-cdk-lib"
+import { aws_lambda as lambda, aws_stepfunctions as sfn } from "aws-cdk-lib"
 
 const prefix = "amazon-jobs-monitor"
 const lambdaPath = path.join(__dirname, "../../functions/fetch-page-content/lambda.zip")
@@ -19,6 +19,11 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       environment: {
         AMAZON_JOBS_BASE_URL: "https://amazon.jobs"
       }
+    })
+
+    new sfn.StateMachine(this, "MonitorWorkflow", {
+      stateMachineName: `${prefix}-workflow`,
+      definitionBody: sfn.DefinitionBody.fromFile(path.join(__dirname, "./workflow.asl.json"))
     })
   }
 }
