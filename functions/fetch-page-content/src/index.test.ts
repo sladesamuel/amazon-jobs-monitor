@@ -6,6 +6,7 @@ process.env.AMAZON_JOBS_BASE_URL = "https://amazon.jobs"
 import handler from "./index"
 import SearchResponse from "./SearchResponse"
 import FetchPageContentModel from "./FetchPageContentModel"
+import Job from "./Job"
 
 const axiosMock = axios as jest.Mocked<typeof axios>
 
@@ -14,6 +15,14 @@ const model: FetchPageContentModel = {
   pageNumber: 1,
   pages: []
 }
+
+const createJob = (id: string, title: string): Job => ({
+  id,
+  title,
+  job_path: `/job/path/${id}`,
+  posted_date: new Date().toUTCString(),
+  url_next_step: `https://amazon.jobs/apply/${id}`
+})
 
 describe("handler", () => {
   beforeEach(() => {
@@ -24,7 +33,9 @@ describe("handler", () => {
     const mockResponse: SearchResponse = {
       error: null,
       hits: 4,
-      jobs: []
+      jobs: [
+        createJob("one", "First Job")
+      ]
     }
 
     let searchUrl: string = ""
@@ -36,14 +47,20 @@ describe("handler", () => {
       }
     )
 
-    const result = await handler(model)
+    const { pages, jobs } = await handler(model)
 
-    expect(result.pages).toHaveLength(1)
+    expect(pages).toHaveLength(1)
 
-    const [actualPage] = result.pages
+    const [actualPage] = pages ?? []
     expect(actualPage.itemsPerPage).toEqual(10)
     expect(actualPage.page).toEqual(1)
     expect(actualPage.searchUrl).toEqual(searchUrl)
+
+    expect(jobs).toHaveLength(1)
+
+    const [actualJob] = jobs ?? []
+    expect(actualJob.id).toEqual("one")
+    expect(actualJob.title).toEqual("First Job")
   })
 
   it("should return 3 pages when there are 27 hits", async () => {
@@ -66,7 +83,7 @@ describe("handler", () => {
 
     expect(result.pages).toHaveLength(3)
 
-    const [page1, page2, page3] = result.pages
+    const [page1, page2, page3] = result.pages ?? []
     expect(page1.itemsPerPage).toEqual(10)
     expect(page1.page).toEqual(1)
     expect(page1.searchUrl).toEqual(searchUrl)
