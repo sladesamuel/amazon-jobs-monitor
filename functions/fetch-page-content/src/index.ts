@@ -16,14 +16,20 @@ export default async function (model: FetchPageContentModel): Promise<FetchPageC
   const response = await axios.get<SearchResponse>(searchUrl)
   console.log(response.data)
 
-  if (response.data.error) {
-    const error = response.data.error as string
-    console.error(error)
+  const {
+    error,
+    hits,
+    jobs
+  } = response.data
 
-    throw Error(`Search failed: ${error}`)
+  if (error) {
+    const errorDetail = error as string
+    console.error(errorDetail)
+
+    throw Error(`Search failed: ${errorDetail}`)
   }
 
-  const pageCount = Math.ceil(response.data.hits / itemsPerPage)
+  const pageCount = Math.ceil(hits / itemsPerPage)
   const pages: Page[] = [...new Array(pageCount)]
     .map((_, index: number) => ({
       itemsPerPage,
@@ -33,6 +39,7 @@ export default async function (model: FetchPageContentModel): Promise<FetchPageC
 
   return {
     ...model,
-    pages
+    pages,
+    jobs
   }
 }

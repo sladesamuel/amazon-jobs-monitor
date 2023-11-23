@@ -1,3 +1,4 @@
+import Job from "./Job"
 import Page from "./Page"
 
 type FetchPageContentModel = {
@@ -8,7 +9,9 @@ type FetchPageContentModel = {
   searchTerm: string
 
   // Populated in the respoonse model
-  pages: Page[]
+  pages?: Page[]
+
+  jobs?: Job[]
 }
 
 export default FetchPageContentModel
