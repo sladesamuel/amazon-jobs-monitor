@@ -4,8 +4,19 @@ import FetchPageContentModel from "./FetchPageContentModel"
 import createSearchUrlFromModel from "./createSearchUrlFromModel"
 import config from "./config"
 import Page from "./Page"
+import Job from "./Job"
 
-const { baseUrl, itemsPerPage } = config
+const { baseUrl, itemsPerPage, includeJobsInResult } = config
+
+// Explicitly convert jobs so we drop any JS-based type info not represented
+// in the TypeScript type, such as the lengthy string-based description
+const convertJob = (job: Job): Job => ({
+  id: job.id,
+  title: job.title,
+  job_path: job.job_path,
+  posted_date: job.posted_date,
+  url_next_step: job.url_next_step
+})
 
 export default async function (model: FetchPageContentModel): Promise<FetchPageContentModel> {
   console.log(model)
@@ -37,9 +48,10 @@ export default async function (model: FetchPageContentModel): Promise<FetchPageC
       searchUrl
     }))
 
+  const actualJobs = jobs.map(convertJob)
   return {
     ...model,
     pages,
-    jobs
+    jobs: includeJobsInResult ? actualJobs : []
   }
 }

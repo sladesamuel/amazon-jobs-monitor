@@ -2,6 +2,7 @@ import axios from "axios"
 jest.mock("axios")
 
 process.env.AMAZON_JOBS_BASE_URL = "https://amazon.jobs"
+process.env.INCLUDE_JOBS_IN_RESULT = "true"
 
 import handler from "./index"
 import SearchResponse from "./SearchResponse"
@@ -29,7 +30,7 @@ describe("handler", () => {
     jest.clearAllMocks()
   })
 
-  it("should return 1 page when there are 4 hits", async () => {
+  it("should return 1 page when there are 4 hits, including jobs", async () => {
     const mockResponse: SearchResponse = {
       error: null,
       hits: 4,
