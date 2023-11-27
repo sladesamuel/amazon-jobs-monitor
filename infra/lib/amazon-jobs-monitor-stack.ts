@@ -9,8 +9,6 @@ import {
 import transformFileTemplate from "./transformFileTemplate"
 import { ServicePrincipal } from "aws-cdk-lib/aws-iam"
 
-const jobSearchTerm = "Solutions Architect"
-
 const prefix = "amazon-jobs-monitor"
 const functionsPath = path.join(__dirname, "../../functions")
 
@@ -57,7 +55,6 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
 
     const stepFunctionDefinitionFilePath = path.join(__dirname, "./workflow.asl.json")
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
-      "JobSearchTerm": jobSearchTerm,
       "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn
     })
 

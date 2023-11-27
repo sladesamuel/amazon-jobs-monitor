@@ -6,7 +6,7 @@ import config from "./config"
 import Page from "./Page"
 import Job from "./Job"
 
-const { baseUrl, itemsPerPage, includeJobsInResult } = config
+const { baseUrl, itemsPerPage } = config
 
 // Explicitly convert jobs so we drop any JS-based type info not represented
 // in the TypeScript type, such as the lengthy string-based description
@@ -44,7 +44,7 @@ export default async function (model: FetchPageContentModel): Promise<FetchPageC
   const pages: Page[] = [...new Array(pageCount)]
     .map((_, index: number) => ({
       itemsPerPage,
-      page: index + 1,
+      pageNumber: index + 1,
       searchUrl
     }))
 
@@ -52,6 +52,6 @@ export default async function (model: FetchPageContentModel): Promise<FetchPageC
   return {
     ...model,
     pages,
-    jobs: includeJobsInResult ? actualJobs : []
+    jobs: (model.includeJobs ?? false) ? actualJobs : []
   }
 }

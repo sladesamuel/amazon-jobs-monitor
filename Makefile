@@ -13,8 +13,9 @@ build:
 	(cd infra; yarn install && yarn build)
 
 .PHONY: test
-test:
-	(cd functions/fetch-page-content; yarn install && yarn test)
+test: build
+	(cd functions/fetch-page-content; yarn test)
+	(cd infra; yarn test)
 
 .PHONY: deploy
 deploy:
