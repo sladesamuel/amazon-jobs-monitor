@@ -1,4 +1,4 @@
-import FetchPageContentModel from "./FetchPageContentModel"
+import FetchPageContentModel from "./models/FetchPageContentModel"
 import config from "./config"
 
 const searchUrl = "en-gb/search.json"

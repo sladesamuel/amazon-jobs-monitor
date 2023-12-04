@@ -1,4 +1,4 @@
-import Job from "./Job"
+import Job from "./models/Job"
 
 type SearchResponse = {
   error: unknown

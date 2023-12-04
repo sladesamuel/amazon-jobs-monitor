@@ -12,6 +12,7 @@ type FetchPageContentModel = {
   pages?: Page[]
 
   jobs?: Job[]
+  includeJobs?: boolean
 }
 
 export default FetchPageContentModel

@@ -5,8 +5,8 @@ process.env.AMAZON_JOBS_BASE_URL = "https://amazon.jobs"
 
 import handler from "./index"
 import SearchResponse from "./SearchResponse"
-import FetchPageContentModel from "./FetchPageContentModel"
-import Job from "./Job"
+import FetchPageContentModel from "./models/FetchPageContentModel"
+import Job from "./models/Job"
 
 const axiosMock = axios as jest.Mocked<typeof axios>
 
@@ -29,7 +29,7 @@ describe("handler", () => {
     jest.clearAllMocks()
   })
 
-  it("should return 1 page when there are 4 hits", async () => {
+  it("should return 1 page when there are 4 hits, excluding jobs", async () => {
     const mockResponse: SearchResponse = {
       error: null,
       hits: 4,
@@ -53,7 +53,40 @@ describe("handler", () => {
 
     const [actualPage] = pages ?? []
     expect(actualPage.itemsPerPage).toEqual(10)
-    expect(actualPage.page).toEqual(1)
+    expect(actualPage.pageNumber).toEqual(1)
+    expect(actualPage.searchUrl).toEqual(searchUrl)
+
+    expect(jobs).toHaveLength(0)
+  })
+
+  it("should return 1 page when there are 4 hits, including jobs", async () => {
+    const mockResponse: SearchResponse = {
+      error: null,
+      hits: 4,
+      jobs: [
+        createJob("one", "First Job")
+      ]
+    }
+
+    let searchUrl: string = ""
+    axiosMock.get.mockImplementationOnce(
+      (url: string) => {
+        searchUrl = url
+
+        return Promise.resolve(({ data: mockResponse }))
+      }
+    )
+
+    const { pages, jobs } = await handler({
+      ...model,
+      includeJobs: true
+    })
+
+    expect(pages).toHaveLength(1)
+
+    const [actualPage] = pages ?? []
+    expect(actualPage.itemsPerPage).toEqual(10)
+    expect(actualPage.pageNumber).toEqual(1)
     expect(actualPage.searchUrl).toEqual(searchUrl)
 
     expect(jobs).toHaveLength(1)
@@ -85,15 +118,15 @@ describe("handler", () => {
 
     const [page1, page2, page3] = result.pages ?? []
     expect(page1.itemsPerPage).toEqual(10)
-    expect(page1.page).toEqual(1)
+    expect(page1.pageNumber).toEqual(1)
     expect(page1.searchUrl).toEqual(searchUrl)
 
     expect(page2.itemsPerPage).toEqual(10)
-    expect(page2.page).toEqual(2)
+    expect(page2.pageNumber).toEqual(2)
     expect(page2.searchUrl).toEqual(searchUrl)
 
     expect(page3.itemsPerPage).toEqual(10)
-    expect(page3.page).toEqual(3)
+    expect(page3.pageNumber).toEqual(3)
     expect(page3.searchUrl).toEqual(searchUrl)
   })
 

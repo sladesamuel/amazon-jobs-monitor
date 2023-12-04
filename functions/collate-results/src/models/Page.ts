@@ -1,5 +1,5 @@
 type Page = {
-  page: number
+  pageNumber: number
   itemsPerPage: number
   searchUrl: string
 }
