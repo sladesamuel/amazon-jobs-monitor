@@ -1,6 +1,6 @@
 import axios from "axios"
 import SearchResponse from "./SearchResponse"
-import FetchPageContentModel from "./FetchPageContentModel"
+import FetchPageContentModel from "../../models/FetchPageContentModel"
 import createSearchUrlFromModel from "./createSearchUrlFromModel"
 import config from "./config"
 import Page from "./Page"
