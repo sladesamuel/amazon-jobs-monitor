@@ -1,5 +1,5 @@
-import FetchPageContentModel from "../../models/FetchPageContentModel"
-import Job from "../../models/Job"
+import FetchPageContentModel from "./models/FetchPageContentModel"
+import Job from "./models/Job"
 import handler from "./index"
 
 const createModel = (...jobs: Job[]): FetchPageContentModel => ({

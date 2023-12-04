@@ -1,10 +1,10 @@
 import axios from "axios"
 import SearchResponse from "./SearchResponse"
-import FetchPageContentModel from "../../models/FetchPageContentModel"
+import FetchPageContentModel from "./models/FetchPageContentModel"
 import createSearchUrlFromModel from "./createSearchUrlFromModel"
 import config from "./config"
-import Page from "../../models/Page"
-import Job from "../../models/Job"
+import Page from "./models/Page"
+import Job from "./models/Job"
 
 const { baseUrl, itemsPerPage } = config
 

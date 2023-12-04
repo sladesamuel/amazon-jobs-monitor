@@ -4,8 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "copy-files": "cp package.json dist/ && cp yarn.lock dist/",
     "build": "tsc",
-    "postbuild": "cp package.json dist/ && (cd dist; yarn install --prod) && yarn package",
+    "postbuild": "yarn copy-files && (cd dist; yarn install --prod) && yarn package",
     "package": "(cd dist; zip -r ../lambda.zip *)",
     "test": "jest"
   },

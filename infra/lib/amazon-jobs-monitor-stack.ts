@@ -29,6 +29,15 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       }
     })
 
+    // Lambda Function: collate-results
+    const collateResultsLambdaPath = path.join(functionsPath, "collate-results/lambda.zip")
+    const collateResultsLambda = new lambda.Function(this, "CollateResults", {
+      functionName: `${prefix}-collate-results`,
+      handler: "index.default",
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(collateResultsLambdaPath)
+    })
+
     // Step Function: monitor-wprkflow
     const stepFunctionIamRole = new iam.Role(this, "MonitorWorkflowRole", {
       roleName: `${prefix}-workflow`,
@@ -46,7 +55,8 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
             "Effect": "Allow",
             "Action": "lambda:InvokeFunction",
             "Resource": [
-              fetchPageContentLambda.functionArn
+              fetchPageContentLambda.functionArn,
+              collateResultsLambda.functionArn
             ]
           }
         ]
@@ -55,7 +65,8 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
 
     const stepFunctionDefinitionFilePath = path.join(__dirname, "./workflow.asl.json")
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
-      "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn
+      "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn,
+      "CollateResultsLambdaArn": collateResultsLambda.functionArn
     })
 
     new sfn.StateMachine(this, "MonitorWorkflow", {

@@ -5,8 +5,8 @@ process.env.AMAZON_JOBS_BASE_URL = "https://amazon.jobs"
 
 import handler from "./index"
 import SearchResponse from "./SearchResponse"
-import FetchPageContentModel from "../../models/FetchPageContentModel"
-import Job from "../../models/Job"
+import FetchPageContentModel from "./models/FetchPageContentModel"
+import Job from "./models/Job"
 
 const axiosMock = axios as jest.Mocked<typeof axios>
 
