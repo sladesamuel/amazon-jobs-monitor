@@ -1,5 +1,5 @@
-import Job from "../fetch-page-content/src/Job"
-import Page from "../fetch-page-content/src/Page"
+import Job from "./Job"
+import Page from "./Page"
 
 type FetchPageContentModel = {
   // The page of results to be fetched
