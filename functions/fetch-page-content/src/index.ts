@@ -18,7 +18,7 @@ const convertJob = (job: Job): Job => ({
   url_next_step: job.url_next_step
 })
 
-export default async function (model: FetchPageContentModel): Promise<FetchPageContentModel> {
+export default async (model: FetchPageContentModel): Promise<FetchPageContentModel> => {
   console.log(model)
 
   const searchUrl = createSearchUrlFromModel(baseUrl, model)
