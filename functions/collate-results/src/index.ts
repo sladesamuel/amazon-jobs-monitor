@@ -8,5 +8,6 @@ export default async (models: FetchPageContentModel[]): Promise<Job[]> => {
   const jobs: Job[] = []
   models.forEach(model => jobs.push(...(model.jobs ?? [])))
 
+  console.log(jobs)
   return jobs
 }
