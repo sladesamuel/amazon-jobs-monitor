@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib"
 import {
   aws_iam as iam,
   aws_lambda as lambda,
+  aws_dynamodb as dynamodb,
   aws_stepfunctions as sfn
 } from "aws-cdk-lib"
 import transformFileTemplate from "./transformFileTemplate"
@@ -47,6 +48,16 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       code: lambda.Code.fromAsset(filterResultsLambdaPath)
     })
 
+    // DynamoDB Table: jobs
+    const jobsTable = new dynamodb.Table(this, "JobsTable", {
+      tableName: `${prefix}-jobs`,
+      partitionKey: {
+        name: "id",
+        type: dynamodb.AttributeType.STRING
+      },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
+    })
+
     // Step Function: monitor-wprkflow
     const stepFunctionIamRole = new iam.Role(this, "MonitorWorkflowRole", {
       roleName: `${prefix}-workflow`,
@@ -73,11 +84,31 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       })
     })
 
+    new iam.Policy(this, "MonitorWorkflowReadWriteJobsTablePolicy", {
+      policyName: `${prefix}-workflow-read-write-jobs-table`,
+      roles: [stepFunctionIamRole],
+      document: iam.PolicyDocument.fromJson({
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AllowReadWriteDynamo",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": jobsTable.tableArn
+          }
+        ]
+      })
+    })
+
     const stepFunctionDefinitionFilePath = path.join(__dirname, "./workflow.asl.json")
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
       "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn,
       "CollateResultsLambdaArn": collateResultsLambda.functionArn,
-      "FilterResultsLambdaArn": filterResultsLambda.functionArn
+      "FilterResultsLambdaArn": filterResultsLambda.functionArn,
+      "JobsTableName": jobsTable.tableName
     })
 
     new sfn.StateMachine(this, "MonitorWorkflow", {
