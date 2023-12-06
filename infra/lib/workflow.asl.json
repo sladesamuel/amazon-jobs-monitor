@@ -113,6 +113,72 @@
         }
       ],
       "OutputPath": "$.Payload",
+      "Next": "Check jobs"
+    },
+    "Check jobs": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Get job",
+        "States": {
+          "Get job": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:getItem",
+            "Parameters": {
+              "TableName": "${JobsTableName}",
+              "Key": {
+                "id": {
+                  "S.$": "$.id"
+                }
+              }
+            },
+            "ResultPath": "$.Result",
+            "Next": "Is job already tracked?"
+          },
+          "Is job already tracked?": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Variable": "$.Result.Item",
+                "IsPresent": true,
+                "Next": "Return empty result"
+              }
+            ],
+            "Default": "Track job"
+          },
+          "Track job": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:putItem",
+            "Parameters": {
+              "TableName": "${JobsTableName}",
+              "Item": {
+                "id": {
+                  "S.$": "$.id"
+                },
+                "title": {
+                  "S.$": "$.title"
+                },
+                "jobPath": {
+                  "S.$": "$.job_path"
+                },
+                "applyUrl": {
+                  "S.$": "$.url_next_step"
+                },
+                "postedDate": {
+                  "S.$": "$.posted_date"
+                }
+              }
+            },
+            "End": true
+          },
+          "Return empty result": {
+            "Type": "Pass",
+            "End": true
+          }
+        }
+      },
       "End": true
     }
   }
