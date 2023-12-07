@@ -30,15 +30,6 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       }
     })
 
-    // Lambda Function: collate-results
-    const collateResultsLambdaPath = path.join(functionsPath, "collate-results/lambda.zip")
-    const collateResultsLambda = new lambda.Function(this, "CollateResults", {
-      functionName: `${prefix}-collate-results`,
-      handler: "index.default",
-      runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset(collateResultsLambdaPath)
-    })
-
     // Lambda Function: filter-results
     const filterResultsLambdaPath = path.join(functionsPath, "filter-results/lambda.zip")
     const filterResultsLambda = new lambda.Function(this, "FilterResults", {
@@ -76,7 +67,6 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
             "Action": "lambda:InvokeFunction",
             "Resource": [
               fetchPageContentLambda.functionArn,
-              collateResultsLambda.functionArn,
               filterResultsLambda.functionArn
             ]
           }
@@ -106,7 +96,6 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
     const stepFunctionDefinitionFilePath = path.join(__dirname, "./workflow.asl.json")
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
       "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn,
-      "CollateResultsLambdaArn": collateResultsLambda.functionArn,
       "FilterResultsLambdaArn": filterResultsLambda.functionArn,
       "JobsTableName": jobsTable.tableName
     })
