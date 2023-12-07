@@ -175,6 +175,33 @@
       "ResultSelector": {
         "results.$": "$[*].Item"
       },
+      "Next": "Count results"
+    },
+    "Count results": {
+      "Type": "Pass",
+      "Parameters": {
+        "results.$": "$.results",
+        "count.$": "States.ArrayLength($.results)"
+      },
+      "Next": "Has new results?"
+    },
+    "Has new results?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.count",
+          "NumericGreaterThan": 0,
+          "Next": "Send new results notification"
+        }
+      ],
+      "Default": "Send no new results notification"
+    },
+    "Send no new results notification": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Send new results notification": {
+      "Type": "Pass",
       "End": true
     }
   }
