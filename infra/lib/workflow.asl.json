@@ -197,11 +197,21 @@
       "Default": "Send no new results notification"
     },
     "Send no new results notification": {
-      "Type": "Pass",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${JobNotificationsArn}",
+        "Message": "No new jobs today"
+      },
       "End": true
     },
     "Send new results notification": {
-      "Type": "Pass",
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${JobNotificationsArn}",
+        "Message.$": "$"
+      },
       "End": true
     }
   }

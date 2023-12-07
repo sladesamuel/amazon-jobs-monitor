@@ -5,6 +5,9 @@ import {
   aws_iam as iam,
   aws_lambda as lambda,
   aws_dynamodb as dynamodb,
+  aws_sqs as sqs,
+  aws_sns as sns,
+  aws_sns_subscriptions as sns_subs,
   aws_stepfunctions as sfn
 } from "aws-cdk-lib"
 import transformFileTemplate from "./transformFileTemplate"
@@ -16,6 +19,9 @@ const functionsPath = path.join(__dirname, "../../functions")
 export class AmazonJobsMonitorStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
+
+    // Parameters
+    const phoneNumber = this.node.getContext("phoneNumber") as string
 
     // Lambda Function: fetch-page-content
     const fetchPageContentLambdaPath = path.join(functionsPath, "fetch-page-content/lambda.zip")
@@ -48,6 +54,36 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
     })
+
+    // SNS Topic and SMS Configuration
+    const topic = new sns.Topic(this, "JobNotifications", {
+      topicName: `${prefix}-notifications`
+    })
+
+    const notificationsDlq = new sqs.Queue(this, "NotificationsDlq", {
+      queueName: `${prefix}-notifications-dlq`
+    })
+
+    notificationsDlq.addToResourcePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      principals: [
+        new ServicePrincipal("sns.amazonaws.com")
+      ],
+      actions: [
+        "sqs:SendMessage"
+      ],
+      conditions: {
+        "ArnEquals": {
+          "aws:SourceArn": topic.topicArn
+        }
+      }
+    }))
+
+    const smsSubscription = new sns_subs.SmsSubscription(phoneNumber, {
+      deadLetterQueue: notificationsDlq
+    })
+
+    topic.addSubscription(smsSubscription)
 
     // Step Function: monitor-wprkflow
     const stepFunctionIamRole = new iam.Role(this, "MonitorWorkflowRole", {

@@ -21,7 +21,7 @@ test: build
 
 .PHONY: deploy
 deploy:
-	(cd infra; yarn cdk deploy)
+	(cd infra; yarn cdk deploy -c phoneNumber=${MOBILE})
 
 .PHONY: destroy
 destroy:
