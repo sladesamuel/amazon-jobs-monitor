@@ -12,6 +12,7 @@ const { baseUrl, itemsPerPage } = config
 // in the TypeScript type, such as the lengthy string-based description
 const convertJob = (job: Job): Job => ({
   id: job.id,
+  id_icims: job.id_icims,
   title: job.title,
   job_path: job.job_path,
   posted_date: job.posted_date,

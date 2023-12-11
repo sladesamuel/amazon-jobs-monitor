@@ -15,8 +15,7 @@
     "baseUrl": "."
   },
   "include": [
-    "./src",
-    "src/models"
+    "./src"
   ],
   "exclude": [
     "node_modules",

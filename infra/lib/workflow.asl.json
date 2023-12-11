@@ -137,6 +137,9 @@
                 "id": {
                   "S.$": "$.id"
                 },
+                "shortId": {
+                  "S.$": "$.id_icims"
+                },
                 "title": {
                   "S.$": "$.title"
                 },
@@ -158,9 +161,9 @@
             "Type": "Pass",
             "Parameters": {
               "Item": {
+                "shortId.$": "$.id_icims",
                 "title.$": "$.title",
-                "applyUrl.$": "$.url_next_step",
-                "postedDate.$": "$.posted_date"
+                "jobPath.$": "$.job_path"
               }
             },
             "End": true
@@ -191,7 +194,7 @@
         {
           "Variable": "$.count",
           "NumericGreaterThan": 0,
-          "Next": "Send new results notification"
+          "Next": "Send notifications"
         }
       ],
       "Default": "Send no new results notification"
@@ -206,13 +209,26 @@
       },
       "End": true
     },
-    "Send new results notification": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::sns:publish",
-      "Parameters": {
-        "TopicArn": "${JobNotificationsArn}",
-        "Subject": "Amazon Jobs Monitor",
-        "Message.$": "$"
+    "Send notifications": {
+      "Type": "Map",
+      "ItemsPath": "$.results",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Send new results notification",
+        "States": {
+          "Send new results notification": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+              "TopicArn": "${JobNotificationsArn}",
+              "Subject": "Amazon Jobs Monitor",
+              "Message.$": "States.Format('{}\nhttps://www.amazon.jobs{}\n\nApply: https://account.amazon.jobs/en-GB/jobs/{}/apply', $.title, $.jobPath, $.shortId)"
+            },
+            "End": true
+          }
+        }
       },
       "End": true
     }
