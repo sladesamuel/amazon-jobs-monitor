@@ -11,12 +11,14 @@ init:
 build:
 	(cd functions/fetch-page-content; yarn install && yarn build)
 	(cd functions/filter-results; yarn install && yarn build)
+	(cd functions/format-results; yarn install && yarn build)
 	(cd infra; yarn install && yarn build)
 
 .PHONY: test
 test: build
 	(cd functions/fetch-page-content; yarn --silent test)
 	(cd functions/filter-results; yarn --silent test)
+	(cd functions/format-results; yarn --silent test)
 	(cd infra; yarn --silent test)
 
 .PHONY: deploy

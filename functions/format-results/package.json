@@ -1,0 +1,20 @@
+{
+  "name": "format-results",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "copy-files": "cp package.json dist/ && cp yarn.lock dist/",
+    "build": "tsc",
+    "postbuild": "yarn copy-files && (cd dist; yarn install --prod) && yarn package",
+    "package": "(cd dist; zip -r ../lambda.zip *)",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.9",
+    "@types/node": "^20.9.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  }
+}
