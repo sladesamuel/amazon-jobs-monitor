@@ -201,6 +201,7 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Parameters": {
         "TopicArn": "${JobNotificationsArn}",
+        "Subject": "Amazon Jobs Monitor",
         "Message": "No new jobs today"
       },
       "End": true
@@ -210,6 +211,7 @@
       "Resource": "arn:aws:states:::sns:publish",
       "Parameters": {
         "TopicArn": "${JobNotificationsArn}",
+        "Subject": "Amazon Jobs Monitor",
         "Message.$": "$"
       },
       "End": true

@@ -5,6 +5,8 @@ import {
   aws_iam as iam,
   aws_lambda as lambda,
   aws_dynamodb as dynamodb,
+  aws_events as events,
+  aws_events_targets as targets,
   aws_sqs as sqs,
   aws_sns as sns,
   aws_sns_subscriptions as sns_subs,
@@ -19,6 +21,9 @@ const functionsPath = path.join(__dirname, "../../functions")
 export class AmazonJobsMonitorStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
+
+    cdk.Tags.of(this).add("Application", "AmazonJobsMonitor")
+    cdk.Tags.of(this).add("Environment", "prod")
 
     // Parameters
     const phoneNumber = this.node.getContext("phoneNumber") as string
@@ -153,10 +158,26 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       "JobNotificationsArn": topic.topicArn
     })
 
-    new sfn.StateMachine(this, "MonitorWorkflow", {
+    const workflow = new sfn.StateMachine(this, "MonitorWorkflow", {
       stateMachineName: `${prefix}-workflow`,
       role: stepFunctionIamRole,
       definitionBody: sfn.DefinitionBody.fromString(stepFunctionDefinition)
+    })
+
+    new events.Rule(this, "RunWorkflowDaily", {
+      ruleName: `${prefix}-run-workflow-daily`,
+      schedule: events.Schedule.cron({
+        minute: "0",
+        hour: "12"
+      }),
+      description: "Triggers the jobs monitor workflow to run once every day at midday",
+      targets: [
+        new targets.SfnStateMachine(workflow, {
+          input: events.RuleTargetInput.fromObject({
+            searchTerm: "Solutions Architect"
+          })
+        })
+      ]
     })
   }
 }
