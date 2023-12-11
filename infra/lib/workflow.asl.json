@@ -137,6 +137,9 @@
                 "id": {
                   "S.$": "$.id"
                 },
+                "shortId": {
+                  "S.$": "$.id_icims"
+                },
                 "title": {
                   "S.$": "$.title"
                 },
@@ -158,10 +161,9 @@
             "Type": "Pass",
             "Parameters": {
               "Item": {
+                "shortId.$": "$.id_icims",
                 "title.$": "$.title",
-                "jobPath.$": "$.job_path",
-                "applyUrl.$": "$.url_next_step",
-                "postedDate.$": "$.posted_date"
+                "jobPath.$": "$.job_path"
               }
             },
             "End": true
@@ -222,7 +224,7 @@
             "Parameters": {
               "TopicArn": "${JobNotificationsArn}",
               "Subject": "Amazon Jobs Monitor",
-              "Message.$": "States.Format('{}\nhttps://www.amazon.jobs{}\n\nApply: {}', $.title, $.jobPath, $.applyUrl)"
+              "Message.$": "States.Format('{}\nhttps://www.amazon.jobs{}\n\nApply: https://account.amazon.jobs/en-GB/jobs/{}/apply', $.title, $.jobPath, $.shortId)"
             },
             "End": true
           }
