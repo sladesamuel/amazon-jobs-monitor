@@ -110,6 +110,22 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       })
     })
 
+    new iam.Policy(this, "MonitorWorkflowPublishNotification", {
+      policyName: `${prefix}-workflow-publish-notifications`,
+      roles: [stepFunctionIamRole],
+      document: iam.PolicyDocument.fromJson({
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AllowPublishNotifications",
+            "Effect": "Allow",
+            "Action": "sns:Publish",
+            "Resource": topic.topicArn
+          }
+        ]
+      })
+    })
+
     new iam.Policy(this, "MonitorWorkflowReadWriteJobsTablePolicy", {
       policyName: `${prefix}-workflow-read-write-jobs-table`,
       roles: [stepFunctionIamRole],
@@ -133,7 +149,8 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
       "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn,
       "FilterResultsLambdaArn": filterResultsLambda.functionArn,
-      "JobsTableName": jobsTable.tableName
+      "JobsTableName": jobsTable.tableName,
+      "JobNotificationsArn": topic.topicArn
     })
 
     new sfn.StateMachine(this, "MonitorWorkflow", {
