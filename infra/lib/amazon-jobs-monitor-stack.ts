@@ -5,6 +5,9 @@ import {
   aws_iam as iam,
   aws_lambda as lambda,
   aws_dynamodb as dynamodb,
+  aws_sqs as sqs,
+  aws_sns as sns,
+  aws_sns_subscriptions as sns_subs,
   aws_stepfunctions as sfn
 } from "aws-cdk-lib"
 import transformFileTemplate from "./transformFileTemplate"
@@ -17,6 +20,9 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
+    // Parameters
+    const phoneNumber = this.node.getContext("phoneNumber") as string
+
     // Lambda Function: fetch-page-content
     const fetchPageContentLambdaPath = path.join(functionsPath, "fetch-page-content/lambda.zip")
     const fetchPageContentLambda = new lambda.Function(this, "FetchPageContent", {
@@ -28,15 +34,6 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       environment: {
         AMAZON_JOBS_BASE_URL: "https://amazon.jobs"
       }
-    })
-
-    // Lambda Function: collate-results
-    const collateResultsLambdaPath = path.join(functionsPath, "collate-results/lambda.zip")
-    const collateResultsLambda = new lambda.Function(this, "CollateResults", {
-      functionName: `${prefix}-collate-results`,
-      handler: "index.default",
-      runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset(collateResultsLambdaPath)
     })
 
     // Lambda Function: filter-results
@@ -58,6 +55,36 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
     })
 
+    // SNS Topic and SMS Configuration
+    const topic = new sns.Topic(this, "JobNotifications", {
+      topicName: `${prefix}-notifications`
+    })
+
+    const notificationsDlq = new sqs.Queue(this, "NotificationsDlq", {
+      queueName: `${prefix}-notifications-dlq`
+    })
+
+    notificationsDlq.addToResourcePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      principals: [
+        new ServicePrincipal("sns.amazonaws.com")
+      ],
+      actions: [
+        "sqs:SendMessage"
+      ],
+      conditions: {
+        "ArnEquals": {
+          "aws:SourceArn": topic.topicArn
+        }
+      }
+    }))
+
+    const smsSubscription = new sns_subs.SmsSubscription(phoneNumber, {
+      deadLetterQueue: notificationsDlq
+    })
+
+    topic.addSubscription(smsSubscription)
+
     // Step Function: monitor-wprkflow
     const stepFunctionIamRole = new iam.Role(this, "MonitorWorkflowRole", {
       roleName: `${prefix}-workflow`,
@@ -76,9 +103,24 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
             "Action": "lambda:InvokeFunction",
             "Resource": [
               fetchPageContentLambda.functionArn,
-              collateResultsLambda.functionArn,
               filterResultsLambda.functionArn
             ]
+          }
+        ]
+      })
+    })
+
+    new iam.Policy(this, "MonitorWorkflowPublishNotification", {
+      policyName: `${prefix}-workflow-publish-notifications`,
+      roles: [stepFunctionIamRole],
+      document: iam.PolicyDocument.fromJson({
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AllowPublishNotifications",
+            "Effect": "Allow",
+            "Action": "sns:Publish",
+            "Resource": topic.topicArn
           }
         ]
       })
@@ -106,9 +148,9 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
     const stepFunctionDefinitionFilePath = path.join(__dirname, "./workflow.asl.json")
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
       "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn,
-      "CollateResultsLambdaArn": collateResultsLambda.functionArn,
       "FilterResultsLambdaArn": filterResultsLambda.functionArn,
-      "JobsTableName": jobsTable.tableName
+      "JobsTableName": jobsTable.tableName,
+      "JobNotificationsArn": topic.topicArn
     })
 
     new sfn.StateMachine(this, "MonitorWorkflow", {

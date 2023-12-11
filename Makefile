@@ -10,24 +10,22 @@ init:
 .PHONY: build
 build:
 	(cd functions/fetch-page-content; yarn install && yarn build)
-	(cd functions/collate-results; yarn install && yarn build)
 	(cd functions/filter-results; yarn install && yarn build)
 	(cd infra; yarn install && yarn build)
 
 .PHONY: test
 test: build
 	(cd functions/fetch-page-content; yarn --silent test)
-	(cd functions/collate-results; yarn --silent test)
 	(cd functions/filter-results; yarn --silent test)
 	(cd infra; yarn --silent test)
 
 .PHONY: deploy
 deploy:
-	(cd infra; yarn cdk deploy)
+	(cd infra; yarn cdk deploy -c phoneNumber=${MOBILE})
 
 .PHONY: destroy
 destroy:
-	(cd infra; yarn cdk destroy)
+	(cd infra; yarn cdk destroy -c phoneNumber=${MOBILE})
 
 .PHONY: clean
 clean:

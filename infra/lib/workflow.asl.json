@@ -66,38 +66,18 @@
           }
         }
       },
-      "Next": "Collate results",
-      "ItemsPath": "$.pages"
-    },
-    "Collate results": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Parameters": {
-        "FunctionName": "${CollateResultsLambdaArn}",
-        "Payload.$": "$"
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "BackoffRate": 2
-        }
-      ],
-      "OutputPath": "$.Payload",
-      "Next": "Filter results"
+      "Next": "Filter results",
+      "ItemsPath": "$.pages",
+      "ResultSelector": {
+        "jobs.$": "$[*].jobs[*]"
+      }
     },
     "Filter results": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Parameters": {
         "FunctionName": "${FilterResultsLambdaArn}",
-        "Payload.$": "$"
+        "Payload.$": "$.jobs"
       },
       "Retry": [
         {
@@ -171,13 +151,66 @@
                 }
               }
             },
+            "ResultPath": "$.Result",
+            "Next": "Capture new job"
+          },
+          "Capture new job": {
+            "Type": "Pass",
+            "Parameters": {
+              "Item": {
+                "title.$": "$.title",
+                "applyUrl.$": "$.url_next_step",
+                "postedDate.$": "$.posted_date"
+              }
+            },
             "End": true
           },
           "Return empty result": {
             "Type": "Pass",
+            "Parameters": null,
             "End": true
           }
         }
+      },
+      "ResultSelector": {
+        "results.$": "$[*].Item"
+      },
+      "Next": "Count results"
+    },
+    "Count results": {
+      "Type": "Pass",
+      "Parameters": {
+        "results.$": "$.results",
+        "count.$": "States.ArrayLength($.results)"
+      },
+      "Next": "Has new results?"
+    },
+    "Has new results?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.count",
+          "NumericGreaterThan": 0,
+          "Next": "Send new results notification"
+        }
+      ],
+      "Default": "Send no new results notification"
+    },
+    "Send no new results notification": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${JobNotificationsArn}",
+        "Message": "No new jobs today"
+      },
+      "End": true
+    },
+    "Send new results notification": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${JobNotificationsArn}",
+        "Message.$": "$"
       },
       "End": true
     }
