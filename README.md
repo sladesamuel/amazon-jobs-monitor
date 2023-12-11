@@ -2,6 +2,8 @@
 
 A serverless solution that monitors the [Amazon Jobs board](https://amazon.jobs/en-gb) for newly posted jobs matching a specific job title (currently **Solutions Architect**).
 
+[![Solution Design](./images/Amazon%20Jobs%20Board%20Monitor%20-%20Solution%20design.jpg)](https://miro.com/app/board/uXjVNS3q0IE=/?share_link_id=842511830880)
+
 ## Prerequisites
 
 The following tools need to be installed to be able to build and deploy this project.
