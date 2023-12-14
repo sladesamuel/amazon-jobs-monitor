@@ -201,11 +201,26 @@
     },
     "Send no new results notification": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::sns:publish",
+      "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
       "Parameters": {
-        "TopicArn": "${JobNotificationsArn}",
-        "Subject": "Amazon Jobs Monitor",
-        "Message": "No new jobs today"
+        "Content": {
+          "Simple": {
+            "Body": {
+              "Text": {
+                "Data": "No new jobs today"
+              }
+            },
+            "Subject": {
+              "Data": "Amazon Jobs Monitor"
+            }
+          }
+        },
+        "FromEmailAddress": "${EmailAddress}",
+        "Destination": {
+          "ToAddresses": [
+            "${EmailAddress}"
+          ]
+        }
       },
       "End": true
     },

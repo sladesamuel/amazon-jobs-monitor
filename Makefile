@@ -21,11 +21,11 @@ test: build
 
 .PHONY: deploy
 deploy:
-	(cd infra; yarn cdk deploy -c phoneNumber=${MOBILE})
+	(cd infra; yarn cdk deploy -c phoneNumber=${MOBILE} -c emailAddress=${EMAIL})
 
 .PHONY: destroy
 destroy:
-	(cd infra; yarn cdk destroy -c phoneNumber=${MOBILE})
+	(cd infra; yarn cdk destroy -c phoneNumber=${MOBILE} -c emailAddress=${EMAIL})
 
 .PHONY: clean
 clean:

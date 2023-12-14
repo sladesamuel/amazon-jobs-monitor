@@ -12,6 +12,7 @@
     "cdk": "cdk"
   },
   "devDependencies": {
+    "@seeebiii/ses-verify-identities": "^4.2.3",
     "@types/jest": "^29.5.8",
     "@types/node": "20.9.0",
     "aws-cdk": "2.110.0",
