@@ -229,7 +229,7 @@
       ],
       "ResultSelector": {
         "Subject": "Amazon Jobs Monitor",
-        "Body.$": "$"
+        "Body.$": "$.Payload"
       },
       "Next": "Send email"
     },

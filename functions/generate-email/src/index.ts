@@ -23,10 +23,18 @@ import Job from "./Job"
 //   },
 //   "End": true
 
+const createJobLink = ({ title, job_path }: Job): string =>
+  `<a href="https://www.amazon.jobs/${job_path}">${title}</a>`
+
 export default async (jobs: Job[]): Promise<string> => {
   console.log(jobs)
 
-  await Promise.resolve()
+  if (jobs.length === 0) {
+    return ""
+  }
 
-  return "TODO: HTML for all jobs"
+  const header = "<h2>New jobs</h2>"
+  const links = jobs.map(createJobLink)
+
+  return [header, "", ...links].join("\n")
 }
