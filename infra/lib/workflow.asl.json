@@ -194,40 +194,66 @@
         {
           "Variable": "$.count",
           "NumericGreaterThan": 0,
-          "Next": "Send notifications"
+          "Next": "Generate email"
         }
       ],
       "Default": "Send no new results notification"
     },
     "Send no new results notification": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::sns:publish",
+      "Type": "Pass",
       "Parameters": {
-        "TopicArn": "${JobNotificationsArn}",
         "Subject": "Amazon Jobs Monitor",
-        "Message": "No new jobs today"
+        "Body": "No new jobs today"
       },
-      "End": true
+      "Next": "Send email"
     },
-    "Send notifications": {
-      "Type": "Map",
-      "ItemsPath": "$.results",
-      "ItemProcessor": {
-        "ProcessorConfig": {
-          "Mode": "INLINE"
-        },
-        "StartAt": "Send new results notification",
-        "States": {
-          "Send new results notification": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::sns:publish",
-            "Parameters": {
-              "TopicArn": "${JobNotificationsArn}",
-              "Subject": "Amazon Jobs Monitor",
-              "Message.$": "States.Format('{}\nhttps://www.amazon.jobs{}\n\nApply: https://account.amazon.jobs/en-GB/jobs/{}/apply', $.title, $.jobPath, $.shortId)"
+    "Generate email": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${GenerateEmailLambdaArn}",
+        "Payload.$": "$.results"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "ResultSelector": {
+        "Subject": "Amazon Jobs Monitor",
+        "Body.$": "$.Payload"
+      },
+      "Next": "Send email"
+    },
+    "Send email": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
+      "Parameters": {
+        "Content": {
+          "Simple": {
+            "Body": {
+              "Html": {
+                "Data.$": "$.Body"
+              }
             },
-            "End": true
+            "Subject": {
+              "Data.$": "$.Subject"
+            }
           }
+        },
+        "FromEmailAddress": "${EmailAddress}",
+        "Destination": {
+          "ToAddresses": [
+            "${EmailAddress}"
+          ]
         }
       },
       "End": true

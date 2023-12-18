@@ -11,21 +11,23 @@ init:
 build:
 	(cd functions/fetch-page-content; yarn install && yarn build)
 	(cd functions/filter-results; yarn install && yarn build)
+	(cd functions/generate-email; yarn install && yarn build)
 	(cd infra; yarn install && yarn build)
 
 .PHONY: test
 test: build
 	(cd functions/fetch-page-content; yarn --silent test)
 	(cd functions/filter-results; yarn --silent test)
+	(cd functions/generate-email; yarn --silent test)
 	(cd infra; yarn --silent test)
 
 .PHONY: deploy
 deploy:
-	(cd infra; yarn cdk deploy -c phoneNumber=${MOBILE})
+	(cd infra; yarn cdk deploy -c phoneNumber=${MOBILE} -c emailAddress=${EMAIL})
 
 .PHONY: destroy
 destroy:
-	(cd infra; yarn cdk destroy -c phoneNumber=${MOBILE})
+	(cd infra; yarn cdk destroy -c phoneNumber=${MOBILE} -c emailAddress=${EMAIL})
 
 .PHONY: clean
 clean:

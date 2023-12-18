@@ -14,6 +14,7 @@ import {
 } from "aws-cdk-lib"
 import transformFileTemplate from "./transformFileTemplate"
 import { ServicePrincipal } from "aws-cdk-lib/aws-iam"
+import { VerifySesEmailAddress } from "@seeebiii/ses-verify-identities"
 
 const prefix = "amazon-jobs-monitor"
 const functionsPath = path.join(__dirname, "../../functions")
@@ -27,6 +28,7 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
 
     // Parameters
     const phoneNumber = this.node.getContext("phoneNumber") as string
+    const emailAddress = this.node.getContext("emailAddress") as string
 
     // Lambda Function: fetch-page-content
     const fetchPageContentLambdaPath = path.join(functionsPath, "fetch-page-content/lambda.zip")
@@ -48,6 +50,15 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       handler: "index.default",
       runtime: lambda.Runtime.NODEJS_18_X,
       code: lambda.Code.fromAsset(filterResultsLambdaPath)
+    })
+
+    // Lambda Function: generate-email
+    const generateEmailLambdaPath = path.join(functionsPath, "generate-email/lambda.zip")
+    const generateEmailLambda = new lambda.Function(this, "GenerateEmail", {
+      functionName: `${prefix}-generate-email`,
+      handler: "index.default",
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(generateEmailLambdaPath)
     })
 
     // DynamoDB Table: jobs
@@ -90,6 +101,10 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
 
     topic.addSubscription(smsSubscription)
 
+    new VerifySesEmailAddress(this, "VerifiedSenderEmail", {
+      emailAddress
+    })
+
     // Step Function: monitor-wprkflow
     const stepFunctionIamRole = new iam.Role(this, "MonitorWorkflowRole", {
       roleName: `${prefix}-workflow`,
@@ -108,7 +123,8 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
             "Action": "lambda:InvokeFunction",
             "Resource": [
               fetchPageContentLambda.functionArn,
-              filterResultsLambda.functionArn
+              filterResultsLambda.functionArn,
+              generateEmailLambda.functionArn
             ]
           }
         ]
@@ -150,12 +166,30 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       })
     })
 
+    new iam.Policy(this, "MonitorWorkflowSendEmailsPolicy", {
+      policyName: `${prefix}-workflow-send-emails`,
+      roles: [stepFunctionIamRole],
+      document: iam.PolicyDocument.fromJson({
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "AllowSendEmails",
+            "Effect": "Allow",
+            "Action": "ses:SendEmail",
+            "Resource": `arn:aws:ses:${this.region}:${this.account}:identity/${emailAddress}`
+          }
+        ]
+      })
+    })
+
     const stepFunctionDefinitionFilePath = path.join(__dirname, "./workflow.asl.json")
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
       "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn,
       "FilterResultsLambdaArn": filterResultsLambda.functionArn,
+      "GenerateEmailLambdaArn": generateEmailLambda.functionArn,
       "JobsTableName": jobsTable.tableName,
-      "JobNotificationsArn": topic.topicArn
+      "JobNotificationsArn": topic.topicArn,
+      "EmailAddress": emailAddress
     })
 
     const workflow = new sfn.StateMachine(this, "MonitorWorkflow", {
