@@ -241,11 +241,11 @@
           "Simple": {
             "Body": {
               "Text": {
-                "Data.$": "$.Subject"
+                "Data.$": "$.Body"
               }
             },
             "Subject": {
-              "Data.$": "$.Body"
+              "Data.$": "$.Subject"
             }
           }
         },
