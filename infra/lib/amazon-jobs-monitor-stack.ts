@@ -52,6 +52,15 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
       code: lambda.Code.fromAsset(filterResultsLambdaPath)
     })
 
+    // Lambda Function: generate-email
+    const generateEmailLambdaPath = path.join(functionsPath, "generate-email/lambda.zip")
+    const generateEmailLambda = new lambda.Function(this, "GenerateEmail", {
+      functionName: `${prefix}-generate-email`,
+      handler: "index.default",
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(generateEmailLambdaPath)
+    })
+
     // DynamoDB Table: jobs
     const jobsTable = new dynamodb.Table(this, "JobsTable", {
       tableName: `${prefix}-jobs`,
@@ -114,7 +123,8 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
             "Action": "lambda:InvokeFunction",
             "Resource": [
               fetchPageContentLambda.functionArn,
-              filterResultsLambda.functionArn
+              filterResultsLambda.functionArn,
+              generateEmailLambda.functionArn
             ]
           }
         ]
@@ -176,6 +186,7 @@ export class AmazonJobsMonitorStack extends cdk.Stack {
     const stepFunctionDefinition = transformFileTemplate(stepFunctionDefinitionFilePath, {
       "FetchPageContentLambdaArn": fetchPageContentLambda.functionArn,
       "FilterResultsLambdaArn": filterResultsLambda.functionArn,
+      "GenerateEmailLambdaArn": generateEmailLambda.functionArn,
       "JobsTableName": jobsTable.tableName,
       "JobNotificationsArn": topic.topicArn,
       "EmailAddress": emailAddress

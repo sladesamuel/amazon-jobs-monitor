@@ -194,12 +194,46 @@
         {
           "Variable": "$.count",
           "NumericGreaterThan": 0,
-          "Next": "Send notifications"
+          "Next": "Generate email"
         }
       ],
       "Default": "Send no new results notification"
     },
     "Send no new results notification": {
+      "Type": "Pass",
+      "Parameters": {
+        "Subject": "Amazon Jobs Monitor",
+        "Body": "No new jobs today"
+      },
+      "Next": "Send email"
+    },
+    "Generate email": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${GenerateEmailLambdaArn}",
+        "Payload.$": "$.results"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "ResultSelector": {
+        "Subject": "Amazon Jobs Monitor",
+        "Body.$": "$"
+      },
+      "Next": "Send email"
+    },
+    "Send email": {
       "Type": "Task",
       "Resource": "arn:aws:states:::aws-sdk:sesv2:sendEmail",
       "Parameters": {
@@ -207,11 +241,11 @@
           "Simple": {
             "Body": {
               "Text": {
-                "Data": "No new jobs today"
+                "Data.$": "$.Subject"
               }
             },
             "Subject": {
-              "Data": "Amazon Jobs Monitor"
+              "Data.$": "$.Body"
             }
           }
         },
@@ -220,29 +254,6 @@
           "ToAddresses": [
             "${EmailAddress}"
           ]
-        }
-      },
-      "End": true
-    },
-    "Send notifications": {
-      "Type": "Map",
-      "ItemsPath": "$.results",
-      "ItemProcessor": {
-        "ProcessorConfig": {
-          "Mode": "INLINE"
-        },
-        "StartAt": "Send new results notification",
-        "States": {
-          "Send new results notification": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::sns:publish",
-            "Parameters": {
-              "TopicArn": "${JobNotificationsArn}",
-              "Subject": "Amazon Jobs Monitor",
-              "Message.$": "States.Format('{}\nhttps://www.amazon.jobs{}\n\nApply: https://account.amazon.jobs/en-GB/jobs/{}/apply', $.title, $.jobPath, $.shortId)"
-            },
-            "End": true
-          }
         }
       },
       "End": true
