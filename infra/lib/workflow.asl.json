@@ -240,7 +240,7 @@
         "Content": {
           "Simple": {
             "Body": {
-              "Text": {
+              "Html": {
                 "Data.$": "$.Body"
               }
             },

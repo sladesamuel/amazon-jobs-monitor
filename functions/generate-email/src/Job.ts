@@ -1,9 +1,7 @@
 type Job = {
-  id: string
+  shortId: string
   title: string
-  job_path: string // URL segment relative to the baseUrl
-  url_next_step: string // absolute URL to apply for the job
-  posted_date: string
+  jobPath: string // URL segment relative to the baseUrl
 }
 
 export default Job

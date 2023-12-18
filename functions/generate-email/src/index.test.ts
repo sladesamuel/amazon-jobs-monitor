@@ -11,44 +11,33 @@ describe("handler", () => {
   it("should return HTML for one job when there is one job", async () => {
     const jobs: Job[] = [
       {
-        id: "job1",
+        shortId: "job1",
         title: "Job 1",
-        job_path: "path1",
-        posted_date: "today",
-        url_next_step: "apply1"
+        jobPath: "/path1"
       }
     ]
 
     const result = await handler(jobs)
 
-    expect(result).toEqual(`<h2>New jobs</h2>
-
-<a href="https://www.amazon.jobs/path1">Job 1</a>`)
+    expect(result).toEqual(`<h2>New jobs</h2><br /><br /><a href="https://www.amazon.jobs/path1">Job 1</a>`)
   })
 
   it("should return HTML for 2 jobs when there are 2 jobs", async () => {
     const jobs: Job[] = [
       {
-        id: "job1",
+        shortId: "job1",
         title: "Job 1",
-        job_path: "path1",
-        posted_date: "today",
-        url_next_step: "apply1"
+        jobPath: "/path1"
       },
       {
-        id: "job2",
+        shortId: "job2",
         title: "Job 2",
-        job_path: "path2",
-        posted_date: "yesterday",
-        url_next_step: "apply2"
+        jobPath: "/path2"
       }
     ]
 
     const result = await handler(jobs)
 
-    expect(result).toEqual(`<h2>New jobs</h2>
-
-<a href="https://www.amazon.jobs/path1">Job 1</a>
-<a href="https://www.amazon.jobs/path2">Job 2</a>`)
+    expect(result).toEqual(`<h2>New jobs</h2><br /><br /><a href="https://www.amazon.jobs/path1">Job 1</a><br /><a href="https://www.amazon.jobs/path2">Job 2</a>`)
   })
 })
