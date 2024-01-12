@@ -9,6 +9,7 @@ A serverless solution that monitors the [Amazon Jobs board](https://amazon.jobs/
 The following tools need to be installed to be able to build and deploy this project.
 
 1. [Node Version Manager](https://github.com/nvm-sh/nvm#installing-and-updating) _alternately, you can simply install the version of Node.js that is specified in [.nvmrc](.nvmrc)_
+1. [Yarn](https://classic.yarnpkg.com/en/docs/install#debian-stable) _it is recommended that you install this globally using `npm i -g yarn`_
 
 ## Before you start
 

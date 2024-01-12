@@ -1,11 +1,12 @@
+MAKEFLAGS += --silent
 SHELL := /bin/bash
 
 ##########################################
 # Modular commands
 ##########################################
-.PHONY: init
-init:
-	(cd infra; yarn install && yarn cdk bootstrap)
+.PHONY: check-shell-args
+check-shell-args:
+	scripts/check-shell-args.sh
 
 .PHONY: build
 build:
@@ -21,12 +22,16 @@ test: build
 	(cd functions/generate-email; yarn --silent test)
 	(cd infra; yarn --silent test)
 
+.PHONY: plan
+plan: check-shell-args
+	(cd infra; yarn install && yarn cdk bootstrap -c phoneNumber=${MOBILE} -c emailAddress=${EMAIL})
+
 .PHONY: deploy
-deploy:
+deploy: check-shell-args
 	(cd infra; yarn cdk deploy -c phoneNumber=${MOBILE} -c emailAddress=${EMAIL})
 
 .PHONY: destroy
-destroy:
+destroy: check-shell-args
 	(cd infra; yarn cdk destroy -c phoneNumber=${MOBILE} -c emailAddress=${EMAIL})
 
 .PHONY: clean
